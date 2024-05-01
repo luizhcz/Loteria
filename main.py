@@ -2,8 +2,6 @@ from flask import Flask, request, jsonify
 import random
 from itertools import combinations
 
-app = Flask(__name__)
-
 class Entrada:
     def __init__(self, minimo_aleatorio, maximo_aleatorio, quantidade_aleatorio, tamanho_combinacao):
         self.minimo_aleatorio = minimo_aleatorio
@@ -17,27 +15,29 @@ class Saida:
         self.total_combinacoes = total_combinacoes
         self.numero_gerados = numero_gerados
 
-@app.route('/geraloteria', methods=['POST'])
-def gera_loteria():
-    data = request.get_json()
-    entrada = Entrada(**data)
+def create_app():
+    app = Flask(__name__)
 
-    numeros_aleatorios = gerar_numeros_aleatorios(entrada.minimo_aleatorio, entrada.maximo_aleatorio, entrada.quantidade_aleatorio)
-    combinacoes = gerar_combinacoes(numeros_aleatorios, entrada.tamanho_combinacao)
+    @app.route('/geraloteria', methods=['POST'])
+    def gera_loteria():
+        data = request.get_json()
+        entrada = Entrada(**data)
 
-    saida = Saida(
-        combinacoes=list(map(list, combinacoes)),
-        total_combinacoes=len(combinacoes),
-        numero_gerados=numeros_aleatorios
-    )
-    
-    return jsonify(saida.__dict__)
+        numeros_aleatorios = gerar_numeros_aleatorios(entrada.minimo_aleatorio, entrada.maximo_aleatorio, entrada.quantidade_aleatorio)
+        combinacoes = gerar_combinacoes(numeros_aleatorios, entrada.tamanho_combinacao)
 
-def gerar_numeros_aleatorios(minimo, maximo, quantidade):
-    return [random.randint(minimo, maximo) for _ in range(quantidade)]
+        saida = Saida(
+            combinacoes=list(map(list, combinacoes)),
+            total_combinacoes=len(combinacoes),
+            numero_gerados=numeros_aleatorios
+        )
+        
+        return jsonify(saida.__dict__)
 
-def gerar_combinacoes(numeros, tamanho_comb):
-    return list(combinations(numeros, tamanho_comb))
+    def gerar_numeros_aleatorios(minimo, maximo, quantidade):
+        return [random.randint(minimo, maximo) for _ in range(quantidade)]
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    def gerar_combinacoes(numeros, tamanho_comb):
+        return list(combinations(numeros, tamanho_comb))
+
+    return app
